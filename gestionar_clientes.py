@@ -66,7 +66,6 @@ def eliminar_cliente(dni_ruc):
 
     id_cliente = resultado[0]
 
-    # Eliminamos las ventas y sus detalles asociados
     cur.execute("""
         DELETE FROM detalle_venta
         WHERE Venta_idVenta IN (SELECT idVenta FROM Venta WHERE Cliente_idCliente = %s)
