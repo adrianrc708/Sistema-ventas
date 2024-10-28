@@ -23,6 +23,80 @@ class CRUDproductos:
                     table.insert("", "end", values=producto)
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar los productos: {e}")
+                
+        def agregar_producto():
+            # Crear una nueva ventana para agregar producto
+            def registrar():
+                # Capturar los datos ingresados en el formulario
+                codigo = codigo_entry.get()
+                nombre = nombre_entry.get()
+                valor_neto = valor_neto_entry.get()
+                valor_venta = valor_venta_entry.get()
+                categoria_nombre = categoria_combo.get()
+                ubicacion = ubicacion_entry.get()
+                stock_actual = stock_entry.get()
+
+                # Obtener el ID de la categoría usando el nombre seleccionado
+                categoria_id = categoria_dict.get(categoria_nombre)
+
+                try:
+                    # Registrar el producto sin entradas y salidas
+                    registrar_producto(nombre, codigo, valor_neto, valor_venta, stock_actual, categoria_id, ubicacion)
+                    messagebox.showinfo("Éxito", "Producto agregado exitosamente.")
+                    agregar_window.destroy()  # Cierra la ventana después de agregar
+                    cargar_productos()  # Recarga la lista de productos
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo agregar el producto: {e}")
+
+            # Crear la ventana
+            agregar_window = ctk.CTkToplevel(base)
+            agregar_window.geometry("400x400")
+            agregar_window.title("Agregar Producto")
+
+            def cargar_categorias():
+                try:
+                    cur.execute("SELECT idCategoria, nombre FROM Categoria")
+                    return {categoria[1]: categoria[0] for categoria in cur.fetchall()}
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo cargar las categorías: {e}")
+                    return {}
+
+            # Cargar categorías para el combo box
+            categoria_dict = cargar_categorias()
+
+            # Etiquetas y entradas
+            ctk.CTkLabel(agregar_window, text="Código:").pack(pady=5)
+            codigo_entry = ctk.CTkEntry(agregar_window)
+            codigo_entry.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Nombre:").pack(pady=5)
+            nombre_entry = ctk.CTkEntry(agregar_window)
+            nombre_entry.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Valor Neto:").pack(pady=5)
+            valor_neto_entry = ctk.CTkEntry(agregar_window)
+            valor_neto_entry.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Valor de Venta:").pack(pady=5)
+            valor_venta_entry = ctk.CTkEntry(agregar_window)
+            valor_venta_entry.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Categoría:").pack(pady=5)
+            categoria_combo = ttk.Combobox(agregar_window, values=list(categoria_dict.keys()), state="readonly")
+            categoria_combo.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Ubicación:").pack(pady=5)
+            ubicacion_entry = ctk.CTkEntry(agregar_window)
+            ubicacion_entry.pack(pady=5)
+
+            ctk.CTkLabel(agregar_window, text="Stock Actual:").pack(pady=5)
+            stock_entry = ctk.CTkEntry(agregar_window)
+            stock_entry.pack(pady=5)
+
+            # Botón para registrar el producto
+            registrar_button = ctk.CTkButton(agregar_window, text="Registrar", command=registrar)
+            registrar_button.pack(pady=20)
+
 
         # Función para buscar un producto por ID o nombre
         def buscar_producto():
@@ -63,25 +137,24 @@ class CRUDproductos:
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo realizar la búsqueda: {e}")
 
-        # Función para eliminar un producto por ID y recargar la tabla completa
-        def eliminar_producto_id():
-            id_producto = id_entry.get().strip()
-            if not id_producto:
-                messagebox.showinfo("Eliminar", "Ingrese un ID para eliminar.")
+        def eliminar_producto_codigo():
+            codigo = id_entry.get().strip()  # Use id_entry to get the code for deletion
+            if not codigo:
+                messagebox.showinfo("Eliminar", "Ingrese un código para eliminar.")
                 return
 
             try:
-                eliminar_producto(id_producto)  # Llamada a la función para eliminar el producto
+                eliminar_producto(codigo)  # Call the function to delete the product by code
                 messagebox.showinfo("Éxito", "Producto eliminado exitosamente.")
 
-                # Eliminar el producto de la tabla visual sin recargar todos los datos
+                # Remove the product from the table without reloading all data
                 for item in table.get_children():
                     producto = table.item(item, "values")
-                    if producto[0] == id_producto:
+                    if producto[0] == codigo:  # Assuming the code is in the first column of the table
                         table.delete(item)
                         break
 
-                # Limpiar los campos de entrada y recargar la tabla completa
+                # Clear the input fields and reload the table
                 id_entry.delete(0, ctk.END)
                 name_entry.delete(0, ctk.END)
                 cargar_productos()
@@ -163,11 +236,13 @@ class CRUDproductos:
         search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_producto, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         search_button.grid(row=0, column=4, padx=10, pady=5)
 
-        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_id, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
+        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_codigo, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         delete_button.grid(row=0, column=5, padx=10, pady=5)
         # LabelFrame para la tabla de productos
         table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
         table_frame.pack(pady=20, fill="x", padx=20)
+
+        
 
         # Define los nombres de las columnas
         columns = ("CODIGO", "ARTICULO", "VALOR NETO", "VALOR DE VENTA", "CATEGORIA", "UBICACION", "ENTRADAS", "SALIDAS", "STOCK")
@@ -202,6 +277,11 @@ class CRUDproductos:
 
         # Evento para seleccionar un producto de la tabla
         table.bind("<ButtonRelease-1>", seleccionar_producto)
+
+        # Agregar botón para abrir la ventana de agregar producto
+        agregar_button = ctk.CTkButton(frame_dark_gray, text="Agregar Producto", command=agregar_producto, width=200, height=50, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
+        agregar_button.pack(pady=10, fill="x", padx=20)
+
 
         cargar_productos()
         base.mainloop()
