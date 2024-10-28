@@ -5,20 +5,18 @@ from tkinter import ttk
 from gestionar_inventario import registrar_producto, actualizar_producto, consultar_producto, eliminar_producto
 from conexion import miConexion, cur
 
-
 class CRUDproductos:
     def crud():
-        # Función para cargar todos los productos en la tabla
         def cargar_productos():
             for item in table.get_children():
                 table.delete(item)
             try:
-                # Actualiza la consulta SQL para incluir el nombre de la categoría
                 cur.execute("""
-                    SELECT p.idProducto, p.nombre, p.codigo, p.stock_actual, c.nombre 
+                    SELECT p.codigo, p.nombre,p.valor_neto, p.valor_venta, c.nombre , u.ubicacion, p.entradas, p.salidas, stock_actual
                     FROM Producto AS p 
-                    LEFT JOIN Categoria AS c ON p.idCategoria = c.idCategoria 
-                    LIMIT 0, 1000
+                    LEFT JOIN Categoria AS c ON c.idCategoria = p.idCategoria  -- Ajustar la relación correcta
+                    LEFT JOIN UbicacionProducto AS u ON u.idUbicacion = p.Ubicacion_idUbicacion
+                    LIMIT 0, 1000;
                 """)
                 productos = cur.fetchall()
                 for producto in productos:
@@ -104,20 +102,20 @@ class CRUDproductos:
         ctk.set_default_color_theme("blue")
 
         base = ctk.CTk()
-        base.geometry("1100x600")
+        base.geometry("1300x700")  # Aumentar el tamaño de la ventana
         base.title("CRUD Productos")
 
         screen_width = base.winfo_screenwidth()
         screen_height = base.winfo_screenheight()
-        position_x = int((screen_width - 1100) / 2)
-        position_y = int((screen_height - 600) / 2)
-        base.geometry(f"1100x600+{position_x}+{position_y}")
+        position_x = int((screen_width - 1300) / 2)
+        position_y = int((screen_height - 700) / 2)
+        base.geometry(f"1300x700+{position_x}+{position_y}")
 
         # Color personalizado para los botones y encabezados de la tabla
         custom_color = "#D04A5D"
 
         # Frame izquierdo plomo oscuro
-        frame_dark_gray = ctk.CTkFrame(base, width=300, height=600, fg_color='gray')
+        frame_dark_gray = ctk.CTkFrame(base, width=300, height=700, fg_color='gray')  # Ajustar altura
         frame_dark_gray.pack(side="left", fill="y")
         logo = Image.open("Imagenes/logo.png")
         logo = logo.resize((250, 150), Image.LANCZOS)
@@ -141,7 +139,7 @@ class CRUDproductos:
             button.pack(pady=10, fill="x", padx=20)
 
         # Frame derecho plomo claro
-        frame_light_gray = ctk.CTkFrame(base, width=800, height=600, fg_color='light gray')
+        frame_light_gray = ctk.CTkFrame(base, width=1000, height=700, fg_color='light gray')  # Ajustar altura
         frame_light_gray.pack(side="right", fill="both", expand=True)
 
         # Título en el frame derecho
@@ -152,7 +150,7 @@ class CRUDproductos:
         search_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
         search_frame.pack(pady=10)
 
-        id_label = ctk.CTkLabel(search_frame, text="ID:", font=("Comic Sans MS", 14))
+        id_label = ctk.CTkLabel(search_frame, text="Codigo:", font=("Comic Sans MS", 14))
         id_label.grid(row=0, column=0, padx=5, pady=5)
         id_entry = ctk.CTkEntry(search_frame, width=100)
         id_entry.grid(row=0, column=1, padx=5, pady=5)
@@ -167,25 +165,40 @@ class CRUDproductos:
 
         delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_id, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         delete_button.grid(row=0, column=5, padx=10, pady=5)
-
         # LabelFrame para la tabla de productos
-        table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=400)
+        table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
         table_frame.pack(pady=20, fill="x", padx=20)
 
-        # Actualiza las columnas para incluir el nombre de la categoría
-        columns = ("ID", "Nombre", "Código", "Stock Actual", "Categoría")
-        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=10)
+        # Define los nombres de las columnas
+        columns = ("CODIGO", "ARTICULO", "VALOR NETO", "VALOR DE VENTA", "CATEGORIA", "UBICACION", "ENTRADAS", "SALIDAS", "STOCK")
+
+        # Define los anchos deseados para cada columna
+        column_widths = {
+            "CODIGO": 70,
+            "ARTICULO": 240,
+            "VALOR NETO": 100,
+            "VALOR DE VENTA": 100,
+            "CATEGORIA": 120,
+            "UBICACION": 70,
+            "ENTRADAS": 100,
+            "SALIDAS": 100,
+            "STOCK": 50,
+        }
+
+        # Crea la tabla
+        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
         table.pack(fill="both", expand=True)
 
-        # Estilos de la tabla para que los encabezados tengan fondo del color personalizado y el texto en blanco
+        # Estilos de la tabla
         style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Comic Sans MS", 10), background=custom_color, foreground="black")
-        style.configure("Treeview", rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=1)
+        style.configure("Treeview.Heading", font=("Consola", 11, "bold"), background=custom_color, foreground="black")
+        style.configure("Treeview", font=("Consola", 11), rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=1)
         style.map("Treeview", background=[("selected", "#D04A5D")])
 
+        # Ajusta el tamaño de las columnas
         for col in columns:
             table.heading(col, text=col)
-            table.column(col, anchor="center", width=150)
+            table.column(col, anchor="center", width=column_widths[col])  # Ajusta el ancho de cada columna
 
         # Evento para seleccionar un producto de la tabla
         table.bind("<ButtonRelease-1>", seleccionar_producto)
