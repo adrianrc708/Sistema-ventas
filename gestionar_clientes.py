@@ -56,23 +56,26 @@ def consultar_cliente(dni_ruc):
     else:
         print("No hay historial de compras para este cliente.")
 
-def eliminar_cliente(dni_ruc):
-    cur.execute("SELECT idCliente FROM Cliente WHERE DNI_RUC = %s", (dni_ruc,))
+def eliminar_cliente(id_cliente):
+    # Verificar que el cliente con el ID especificado exista en la base de datos
+    cur.execute("SELECT idCliente FROM Cliente WHERE idCliente = %s", (id_cliente,))
     resultado = cur.fetchone()
 
     if resultado is None:
-        print("Cliente no encontrado.")
+        print("Cliente no encontrado con el ID especificado.")
         return
 
-    id_cliente = resultado[0]
-
+    # Proceder a eliminar registros en las tablas relacionadas
+    # Eliminar registros de detalle_venta asociados al cliente
     cur.execute("""
         DELETE FROM detalle_venta
         WHERE Venta_idVenta IN (SELECT idVenta FROM Venta WHERE Cliente_idCliente = %s)
     """, (id_cliente,))
     
+    # Eliminar registros de Venta asociados al cliente
     cur.execute("DELETE FROM Venta WHERE Cliente_idCliente = %s", (id_cliente,))
-    cur.execute("DELETE FROM Cliente WHERE DNI_RUC = %s", (dni_ruc,))
+    
+    # Eliminar el cliente de la tabla Cliente
+    cur.execute("DELETE FROM Cliente WHERE idCliente = %s", (id_cliente,))
     miConexion.commit()
     print("Cliente y registros asociados eliminados exitosamente.")
-
