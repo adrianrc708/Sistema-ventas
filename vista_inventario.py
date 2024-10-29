@@ -7,7 +7,9 @@ from vista_producto import vista_producto
 from conexion import miConexion, cur
 
 class CRUDproductos:
-    def crud():
+    def __init__(self):
+        self.crud()
+    def crud(self):
         def cargar_productos():
             for item in table.get_children():
                 table.delete(item)
@@ -200,11 +202,9 @@ class CRUDproductos:
 
         table.bind("<ButtonRelease-1>", seleccionar_producto)
 
-        agregar_button = ctk.CTkButton(frame_light_gray, text="AGREGAR PRODUCTO", command= vista_producto, width=40, height=40, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
+        agregar_button = ctk.CTkButton(frame_light_gray, text="AGREGAR PRODUCTO", command=lambda: [base.destroy(), vista_producto()], width=40, height=40, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
         agregar_button.pack(pady=10, fill="x", padx=400)
 
 
         cargar_productos()
         base.mainloop()
-
-    crud()
