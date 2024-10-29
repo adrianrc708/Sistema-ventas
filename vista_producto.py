@@ -95,7 +95,6 @@ def vista_producto():
         codigo = codigo_entry.get()
         nombre = nombre_entry.get()
         valor_neto = valor_neto_entry.get()
-        valor_venta = valor_venta_entry.get()
         categoria_nombre = categoria_combo.get()
         stock_actual = stock_entry.get()
         ubicacion = "Ubicación específica"  # puedes cambiar esto por el valor de otra entrada si deseas

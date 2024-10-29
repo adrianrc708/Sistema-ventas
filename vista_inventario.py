@@ -24,42 +24,39 @@ class CRUDproductos:
                     table.insert("", "end", values=producto)
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar los productos: {e}")
-        # Función para buscar un producto por ID o nombre
+
         def buscar_producto():
             id_producto = id_entry.get().strip()
             nombre_producto = name_entry.get().strip()
-
-            # Limpiar la tabla antes de mostrar los resultados de búsqueda
             for item in table.get_children():
                 table.delete(item)
-
             try:
                 if id_producto:
                     cur.execute("""
-                        SELECT p.idProducto, p.nombre, p.codigo, p.stock_actual, c.nombre 
+                        SELECT p.codigo, p.nombre, p.valor_neto, p.valor_venta, c.nombre, u.ubicacion, p.entradas, p.salidas, p.stock_actual 
                         FROM Producto AS p 
                         LEFT JOIN Categoria AS c ON p.idCategoria = c.idCategoria 
-                        WHERE p.idProducto = %s
+                        LEFT JOIN UbicacionProducto AS u ON p.Ubicacion_idUbicacion = u.idUbicacion 
+                        WHERE p.codigo = %s
                     """, (id_producto,))
                 elif nombre_producto:
                     cur.execute("""
-                        SELECT p.idProducto, p.nombre, p.codigo, p.stock_actual, c.nombre 
+                        SELECT p.codigo, p.nombre, p.valor_neto, p.valor_venta, c.nombre, u.ubicacion, p.entradas, p.salidas, p.stock_actual 
                         FROM Producto AS p 
                         LEFT JOIN Categoria AS c ON p.idCategoria = c.idCategoria 
+                        LEFT JOIN UbicacionProducto AS u ON p.Ubicacion_idUbicacion = u.idUbicacion 
                         WHERE p.nombre LIKE %s
                     """, (f"%{nombre_producto}%",))
                 else:
                     cargar_productos()
                     return
-                
-                # Mostrar los resultados de búsqueda en la tabla
                 productos = cur.fetchall()
-                for producto in productos:
-                    table.insert("", "end", values=producto)
-
-                # Mostrar mensaje si no se encontró ningún producto
-                if not productos:
+                if productos:
+                    for producto in productos:
+                        table.insert("", "end", values=producto)
+                else:
                     messagebox.showinfo("Resultado", "No se encontraron productos con los criterios de búsqueda.")
+                    cargar_productos()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo realizar la búsqueda: {e}")
 
@@ -123,7 +120,7 @@ class CRUDproductos:
         logo_label.image = logo
         logo_label.pack(pady=(20, 30))
         # Botones en el menú izquierdo
-        buttons = ["VENTA", "REGISTRO VENTA", "CLIENTE", "PRODUCTO", "REGRESAR"]
+        buttons = ["NUEVA VENTA", "INVENTARIO", "VENTAS", "CLIENTES"]
         for btn_text in buttons:
             button = ctk.CTkButton(
                 frame_dark_gray, 
@@ -133,7 +130,7 @@ class CRUDproductos:
                 corner_radius=10, 
                 fg_color=custom_color, 
                 hover_color="#B03B4A", 
-                font=("Comic Sans MS", 14, "bold")
+                font=("Consola", 14, "bold")
             )
             button.pack(pady=10, fill="x", padx=20)
 
@@ -142,27 +139,27 @@ class CRUDproductos:
         frame_light_gray.pack(side="right", fill="both", expand=True)
 
         # Título en el frame derecho
-        title_label = ctk.CTkLabel(frame_light_gray, text="INVENTARIO", font=("Comic Sans MS", 30, "bold"))
+        title_label = ctk.CTkLabel(frame_light_gray, text="INVENTARIO", font=("Consola", 40, "bold"))
         title_label.pack(pady=20)
 
         # LabelFrame para búsqueda
         search_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
         search_frame.pack(pady=10)
 
-        id_label = ctk.CTkLabel(search_frame, text="Codigo:", font=("Comic Sans MS", 14))
+        id_label = ctk.CTkLabel(search_frame, text="Codigo:", font=("Consola", 14))
         id_label.grid(row=0, column=0, padx=5, pady=5)
         id_entry = ctk.CTkEntry(search_frame, width=100)
         id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        name_label = ctk.CTkLabel(search_frame, text="Nombre:", font=("Comic Sans MS", 14))
+        name_label = ctk.CTkLabel(search_frame, text="Nombre:", font=("Consola", 14))
         name_label.grid(row=0, column=2, padx=5, pady=5)
         name_entry = ctk.CTkEntry(search_frame, width=275)
         name_entry.grid(row=0, column=3, padx=5, pady=5)
 
-        search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_producto, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
+        search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_producto, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
         search_button.grid(row=0, column=4, padx=10, pady=5)
 
-        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_codigo, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
+        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_codigo, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
         delete_button.grid(row=0, column=5, padx=10, pady=5)
         # LabelFrame para la tabla de productos
         table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
@@ -187,26 +184,24 @@ class CRUDproductos:
         }
 
         # Crea la tabla
-        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
+        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=20)
         table.pack(fill="both", expand=True)
 
         # Estilos de la tabla
         style = ttk.Style()
         style.configure("Treeview.Heading", font=("Consola", 11, "bold"), background=custom_color, foreground="black")
-        style.configure("Treeview", font=("Consola", 11), rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=1)
+        style.configure("Treeview", font=("Consola", 11), rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=3)
         style.map("Treeview", background=[("selected", "#D04A5D")])
 
         # Ajusta el tamaño de las columnas
         for col in columns:
             table.heading(col, text=col)
-            table.column(col, anchor="center", width=column_widths[col])  # Ajusta el ancho de cada columna
+            table.column(col, anchor="center", width=column_widths[col])
 
-        # Evento para seleccionar un producto de la tabla
         table.bind("<ButtonRelease-1>", seleccionar_producto)
 
-        # Agregar botón para abrir la ventana de agregar producto
-        agregar_button = ctk.CTkButton(frame_dark_gray, text="AGREGAR PRODUCTO", command= vista_producto, width=200, height=50, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
-        agregar_button.pack(pady=10, fill="x", padx=20)
+        agregar_button = ctk.CTkButton(frame_light_gray, text="AGREGAR PRODUCTO", command= vista_producto, width=40, height=40, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
+        agregar_button.pack(pady=10, fill="x", padx=400)
 
 
         cargar_productos()
