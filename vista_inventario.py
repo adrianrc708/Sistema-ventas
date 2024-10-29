@@ -1,8 +1,9 @@
-import customtkinter as ctk
 from tkinter import messagebox
-from PIL import Image, ImageTk
 from tkinter import ttk
-from gestionar_inventario import registrar_producto, actualizar_producto, consultar_producto, eliminar_producto
+import customtkinter as ctk
+from PIL import Image, ImageTk
+from gestionar_inventario import eliminar_producto
+from vista_producto import vista_producto
 from conexion import miConexion, cur
 
 class CRUDproductos:
@@ -23,81 +24,6 @@ class CRUDproductos:
                     table.insert("", "end", values=producto)
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar los productos: {e}")
-                
-        def agregar_producto():
-            # Crear una nueva ventana para agregar producto
-            def registrar():
-                # Capturar los datos ingresados en el formulario
-                codigo = codigo_entry.get()
-                nombre = nombre_entry.get()
-                valor_neto = valor_neto_entry.get()
-                valor_venta = valor_venta_entry.get()
-                categoria_nombre = categoria_combo.get()
-                ubicacion = ubicacion_entry.get()
-                stock_actual = stock_entry.get()
-
-                # Obtener el ID de la categoría usando el nombre seleccionado
-                categoria_id = categoria_dict.get(categoria_nombre)
-
-                try:
-                    # Registrar el producto sin entradas y salidas
-                    registrar_producto(nombre, codigo, valor_neto, valor_venta, stock_actual, categoria_id, ubicacion)
-                    messagebox.showinfo("Éxito", "Producto agregado exitosamente.")
-                    agregar_window.destroy()  # Cierra la ventana después de agregar
-                    cargar_productos()  # Recarga la lista de productos
-                except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo agregar el producto: {e}")
-
-            # Crear la ventana
-            agregar_window = ctk.CTkToplevel(base)
-            agregar_window.geometry("400x400")
-            agregar_window.title("Agregar Producto")
-
-            def cargar_categorias():
-                try:
-                    cur.execute("SELECT idCategoria, nombre FROM Categoria")
-                    return {categoria[1]: categoria[0] for categoria in cur.fetchall()}
-                except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo cargar las categorías: {e}")
-                    return {}
-
-            # Cargar categorías para el combo box
-            categoria_dict = cargar_categorias()
-
-            # Etiquetas y entradas
-            ctk.CTkLabel(agregar_window, text="Código:").pack(pady=5)
-            codigo_entry = ctk.CTkEntry(agregar_window)
-            codigo_entry.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Nombre:").pack(pady=5)
-            nombre_entry = ctk.CTkEntry(agregar_window)
-            nombre_entry.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Valor Neto:").pack(pady=5)
-            valor_neto_entry = ctk.CTkEntry(agregar_window)
-            valor_neto_entry.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Valor de Venta:").pack(pady=5)
-            valor_venta_entry = ctk.CTkEntry(agregar_window)
-            valor_venta_entry.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Categoría:").pack(pady=5)
-            categoria_combo = ttk.Combobox(agregar_window, values=list(categoria_dict.keys()), state="readonly")
-            categoria_combo.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Ubicación:").pack(pady=5)
-            ubicacion_entry = ctk.CTkEntry(agregar_window)
-            ubicacion_entry.pack(pady=5)
-
-            ctk.CTkLabel(agregar_window, text="Stock Actual:").pack(pady=5)
-            stock_entry = ctk.CTkEntry(agregar_window)
-            stock_entry.pack(pady=5)
-
-            # Botón para registrar el producto
-            registrar_button = ctk.CTkButton(agregar_window, text="Registrar", command=registrar)
-            registrar_button.pack(pady=20)
-
-
         # Función para buscar un producto por ID o nombre
         def buscar_producto():
             id_producto = id_entry.get().strip()
@@ -279,7 +205,7 @@ class CRUDproductos:
         table.bind("<ButtonRelease-1>", seleccionar_producto)
 
         # Agregar botón para abrir la ventana de agregar producto
-        agregar_button = ctk.CTkButton(frame_dark_gray, text="Agregar Producto", command=agregar_producto, width=200, height=50, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
+        agregar_button = ctk.CTkButton(frame_dark_gray, text="AGREGAR PRODUCTO", command= vista_producto, width=200, height=50, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         agregar_button.pack(pady=10, fill="x", padx=20)
 
 
