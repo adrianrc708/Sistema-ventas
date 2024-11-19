@@ -1,0 +1,58 @@
+from tkinter import messagebox
+import customtkinter as ctk
+import pymysql
+from PIL import Image, ImageTk
+from vista_inventario import CRUDproductos
+from conexion import miConexion, cur
+
+class LoginApp:
+    def __init__(self):
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
+        self.root = ctk.CTk()
+        self.root.geometry("500x400")
+        self.root.title("Inicio de Sesión")
+
+        self.logo_frame = ctk.CTkFrame(self.root, width=500, height=200, fg_color='white')
+        self.logo_frame.pack(fill="both")
+        self.logo = Image.open("Imagenes/logo.png")
+        self.logo = self.logo.resize((250, 100), Image.LANCZOS)
+        self.logo = ImageTk.PhotoImage(self.logo)
+        self.logo_label = ctk.CTkLabel(self.logo_frame, image=self.logo, text="")
+        self.logo_label.image = self.logo
+        self.logo_label.pack(pady=20)
+
+        self.form_frame = ctk.CTkFrame(self.root, width=500, height=200)
+        self.form_frame.pack(fill="both", expand=True)
+
+        self.user_entry = ctk.CTkEntry(self.form_frame, width=250, placeholder_text="Usuario")
+        self.user_entry.pack(pady=10)
+
+        self.password_entry = ctk.CTkEntry(self.form_frame, width=250, show="*", placeholder_text="Contraseña")
+        self.password_entry.pack(pady=10)
+
+        self.login_button = ctk.CTkButton(self.form_frame, text="Iniciar Sesión", width=250, command=self.iniciar_sesion)
+        self.login_button.pack(pady=20)
+
+        self.root.mainloop()
+
+    def iniciar_sesion(self):
+        usuario = self.user_entry.get().strip()
+        contrasena = self.password_entry.get().strip()
+        
+        if not usuario or not contrasena:
+            messagebox.showwarning("Advertencia", "Por favor, complete todos los campos.")
+            return
+        try:
+            cur.execute("SELECT contrasena FROM usuarios WHERE email = %s AND contrasena = SHA2(%s, 256)", (usuario, contrasena))
+            result = cur.fetchone()
+            if result:
+                self.root.destroy()
+                CRUDproductos() 
+            else:
+                messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo iniciar sesión: {e}")
+            
+if __name__ == "__main__":
+    LoginApp()

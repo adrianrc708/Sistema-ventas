@@ -1,8 +1,19 @@
 from conexion import miConexion, cur
 
-def registrar_producto(nombre, codigo, stock_actual, id_categoria):
-    query = "INSERT INTO Producto (nombre, codigo, stock_actual, idCategoria) VALUES (%s, %s, %s, %s)"
-    cur.execute(query, (nombre, codigo, stock_actual, id_categoria))
+def registrar_producto(nombre, codigo, valor_neto, valor_venta, stock_actual, id_categoria, ubicacion):
+    query_ubicacion = """
+        INSERT INTO UbicacionProducto (ubicacion) 
+        VALUES (%s) 
+        ON DUPLICATE KEY UPDATE idUbicacion=LAST_INSERT_ID(idUbicacion)
+    """
+    cur.execute(query_ubicacion, (ubicacion,))
+    id_ubicacion = cur.lastrowid 
+
+    query_producto = """
+        INSERT INTO Producto (nombre, codigo, valor_neto, valor_venta, stock_actual, idCategoria, Ubicacion_idUbicacion)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    cur.execute(query_producto, (nombre, codigo, valor_neto, valor_venta, stock_actual, id_categoria, id_ubicacion))
     miConexion.commit()
     print("Producto registrado exitosamente.")
 
@@ -15,7 +26,7 @@ def actualizar_producto(id_producto, nombre=None, codigo=None, stock_actual=None
     if codigo:
         updates.append("codigo = %s")
         values.append(codigo)
-    if stock_actual is not None:  # Verificamos si el stock es proporcionado
+    if stock_actual is not None:
         updates.append("stock_actual = %s")
         values.append(stock_actual)
     if id_categoria:
@@ -48,16 +59,14 @@ def consultar_producto(id_producto):
     else:
         print("Producto no encontrado.")
 
-def eliminar_producto(id_producto):
-    # Verificar que el producto con el ID especificado exista en la base de datos
-    cur.execute("SELECT idProducto FROM Producto WHERE idProducto = %s", (id_producto,))
+def eliminar_producto(codigo):
+    cur.execute("SELECT idProducto FROM Producto WHERE codigo = %s", (codigo,))
     resultado = cur.fetchone()
 
     if resultado is None:
-        print("Producto no encontrado con el ID especificado.")
+        print("Producto no encontrado con el código especificado.")
         return
-
-    # Eliminar el producto de la tabla Producto
-    cur.execute("DELETE FROM Producto WHERE idProducto = %s", (id_producto,))
+    cur.execute("DELETE FROM Producto WHERE codigo = %s", (codigo,))
     miConexion.commit()
     print("Producto eliminado exitosamente.")
+
