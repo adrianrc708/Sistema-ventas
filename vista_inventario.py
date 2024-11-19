@@ -6,6 +6,7 @@ from gestionar_inventario import eliminar_producto
 from vista_producto import vista_producto
 from conexion import miConexion, cur
 
+
 class CRUDproductos:
     def __init__(self):
         self.crud()
@@ -208,3 +209,5 @@ class CRUDproductos:
 
         cargar_productos()
         base.mainloop()
+if __name__ == "__main__":
+    CRUDproductos().crud()

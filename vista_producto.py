@@ -4,6 +4,7 @@ from tkinter import ttk
 import customtkinter as ctk
 from gestionar_inventario import registrar_producto
 
+
 from conexion import miConexion, cur
 
 def vista_producto():
@@ -161,3 +162,4 @@ def vista_producto():
     cargar_productos()
 
     base.mainloop()
+

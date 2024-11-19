@@ -5,8 +5,10 @@ from tkinter import ttk
 from gestionar_clientes import consultar_cliente, eliminar_cliente,registrar_cliente
 from conexion import miConexion, cur
 
+
 class CRUDclientes:
-    def crud():
+    def crud(self):
+        from main import MainApp
         def cargar_clientes():
             for item in table.get_children():
                 table.delete(item)
@@ -221,7 +223,7 @@ class CRUDclientes:
         logo_label.image = logo
         logo_label.pack(pady=(20, 30))
 
-        buttons = {"REGISTRAR CLIENTE": registro, "CLIENTES": mostrar_interfaz_clientes, "REGRESAR": base.quit}
+        buttons = {"REGISTRAR CLIENTE": registro, "CLIENTES": mostrar_interfaz_clientes, "REGRESAR": lambda: [base.destroy(), MainApp()]}
         for btn_text, btn_command in buttons.items():
             button = ctk.CTkButton(
                 frame_dark_gray, 
@@ -242,4 +244,5 @@ class CRUDclientes:
         mostrar_interfaz_clientes()
         base.mainloop()
 
-    crud()
+if __name__ == "__main__":
+    CRUDclientes().crud()
