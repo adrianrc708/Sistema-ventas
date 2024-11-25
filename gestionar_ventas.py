@@ -40,7 +40,7 @@ def consultar_venta(venta_id):
             SELECT v.idVenta, c.persona, u.nombre, u.apellido, v.fecha, v.descuento, v.importe_total, v.importe_total_igv
             FROM Venta AS v
             JOIN Cliente AS c ON v.Cliente_idCliente = c.idCliente
-            JOIN usuarios AS u ON v.Usuario_idUsuario = u.id_usuario
+            JOIN usuarios AS u ON v.idUsuario = u.id_usuario
             WHERE v.idVenta = %s
         """
         cur.execute(query_venta, (venta_id,))
