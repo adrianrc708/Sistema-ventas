@@ -4,6 +4,10 @@ from PIL import Image, ImageTk
 from gestionar_ventas import registrar_venta, consultar_venta, eliminar_venta
 from conexion import cur
 import tkinter.ttk as ttk
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import tkinter.simpledialog as simpledialog
 
 class CRUDventas:
     def crud(self):
@@ -269,8 +273,8 @@ class CRUDventas:
                 product_table.bind("<Double-1>", on_double_click)
 
                 def confirmar_venta():
-                    """Confirma la venta y registra los datos en las tablas Venta y detalle_venta."""
-                    import tkinter.simpledialog as simpledialog  # Importar el módulo de diálogos de tkinter
+                    """Confirma la venta, registra los datos en la base de datos y genera automáticamente una factura."""
+                    import tkinter.simpledialog as simpledialog
 
                     total_importe = 0
                     productos_seleccionados = []
@@ -289,7 +293,7 @@ class CRUDventas:
                         messagebox.showwarning("Advertencia", "Debe seleccionar al menos un producto con cantidad válida.")
                         return
 
-                    # Solicitar ID del cliente usando tkinter.simpledialog
+                    # Solicitar ID del cliente
                     cliente_id = simpledialog.askstring("Cliente", "Ingrese el ID del Cliente:")
                     if not cliente_id or not cliente_id.isdigit():
                         messagebox.showerror("Error", "Debe ingresar un ID de cliente válido.")
@@ -333,14 +337,113 @@ class CRUDventas:
 
                         # Confirmar los cambios en la base de datos
                         cur.connection.commit()
-                        messagebox.showinfo("Éxito", "Venta confirmada y registrada correctamente.")
+
+                        # Generar automáticamente la factura
+                        generar_factura_automatica(id_venta)
+
+                        messagebox.showinfo("Éxito", "Venta confirmada y factura generada correctamente.")
 
                         # Reiniciar la tabla de productos (cantidades a 0)
                         mostrar_tabla_productos(user_id)
+
                     except Exception as e:
-                        # Manejar errores y revertir cambios si algo falla
                         cur.connection.rollback()
                         messagebox.showerror("Error", f"No se pudo registrar la venta: {e}")
+
+
+                def generar_factura_automatica(venta_id):
+                    """Genera una factura automáticamente en una carpeta llamada Facturas."""
+                    try:
+                        # Crear carpeta Facturas si no existe
+                        carpeta_facturas = "Facturas"
+                        if not os.path.exists(carpeta_facturas):
+                            os.makedirs(carpeta_facturas)
+
+                        # Consultar la información de la venta
+                        cur.execute("""
+                            SELECT v.fecha, c.persona AS cliente, CONCAT(u.nombre, ' ', u.apellido) AS usuario, 
+                                v.importe_total, v.importe_total_igv
+                            FROM Venta AS v
+                            JOIN Cliente AS c ON v.Cliente_idCliente = c.idCliente
+                            JOIN usuarios AS u ON v.idUsuario = u.id_usuario
+                            WHERE v.idVenta = %s;
+                        """, (venta_id,))
+                        venta = cur.fetchone()
+
+                        # Consultar los detalles de la venta
+                        cur.execute("""
+                            SELECT p.nombre AS producto, dv.cantidad, dv.precio_unitario, 
+                                (dv.cantidad * dv.precio_unitario) AS subtotal
+                            FROM detalle_venta AS dv
+                            JOIN Producto AS p ON dv.Producto_idProducto = p.idProducto
+                            WHERE dv.Venta_idVenta = %s;
+                        """, (venta_id,))
+                        detalles = cur.fetchall()
+
+                        # Ruta del archivo PDF
+                        ruta_factura = os.path.join(carpeta_facturas, f"Factura_{venta_id}.pdf")
+
+                        # Crear el archivo PDF
+                        c = canvas.Canvas(ruta_factura, pagesize=letter)
+
+                        # Insertar el logo
+                        logo_path = "Imagenes/logo.png"
+                        if os.path.exists(logo_path):
+                            c.drawImage(logo_path, 50, 700, width=100, height=50, preserveAspectRatio=True, mask='auto')
+
+                        # Encabezado
+                        c.setFont("Helvetica-Bold", 20)
+                        c.drawString(200, 750, "FACTURA")
+
+                        c.setFont("Helvetica", 10)
+                        c.drawString(50, 680, f"Fecha: {venta[0]}")  # Fecha
+                        c.drawString(50, 660, f"Cliente: {venta[1]}")  # Cliente
+                        c.drawString(50, 640, f"Atendido por: {venta[2]}")  # Usuario
+
+                        # Tabla de detalles
+                        c.setFont("Helvetica-Bold", 12)
+                        c.drawString(50, 580, "DETALLES DE LA VENTA")
+                        c.line(50, 570, 550, 570)
+
+                        # Dibujar la tabla de productos
+                        c.setFont("Helvetica-Bold", 10)
+                        headers = ["Producto", "Cantidad", "Precio Unitario", "Subtotal"]
+                        x_positions = [50, 250, 350, 450]  # Coordenadas X para las columnas
+                        for i, header in enumerate(headers):
+                            c.drawString(x_positions[i], 550, header)
+
+                        c.line(50, 540, 550, 540)  # Línea horizontal debajo de los encabezados
+
+                        # Añadir los productos a la tabla
+                        y = 520
+                        c.setFont("Helvetica", 8)
+                        for detalle in detalles:
+                            c.drawString(x_positions[0], y, detalle[0])  # Producto
+                            c.drawString(x_positions[1], y, str(detalle[1]))  # Cantidad
+                            c.drawString(x_positions[2], y, f"S/. {detalle[2]:.2f}")  # Precio Unitario
+                            c.drawString(x_positions[3], y, f"S/. {detalle[3]:.2f}")  # Subtotal
+                            y -= 20
+                            if y < 50:  # Si no hay más espacio en la página, añadir una nueva página
+                                c.showPage()
+                                c.setFont("Helvetica", 8)
+                                y = 750
+
+                        # Totales
+                        c.line(50, y - 10, 550, y - 10)  # Línea horizontal antes del total
+                        c.setFont("Helvetica-Bold", 10)
+                        c.drawString(350, y - 30, "TOTAL:")
+                        c.drawString(450, y - 30, f"S/. {venta[3]:.2f}")  # Total sin IGV
+                        c.drawString(350, y - 50, "TOTAL C/ IGV:")
+                        c.drawString(450, y - 50, f"S/. {venta[4]:.2f}")  # Total con IGV
+
+                        # Guardar el archivo PDF
+                        c.save()
+
+                    except Exception as e:
+                        messagebox.showerror("Error", f"No se pudo generar la factura automáticamente: {e}")
+
+
+
 
 
                 def cancelar_venta():
@@ -377,11 +480,8 @@ class CRUDventas:
 
             close_button = ctk.CTkButton(password_window, text="Cancelar", command=password_window.destroy, width=150)
             close_button.pack(pady=10)
-
-        def regresar():
-            base.destroy()
-            MainApp()
-
+            
+        
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
 
@@ -412,7 +512,6 @@ class CRUDventas:
         buttons = {
             "GESTIONAR VENTAS": mostrar_crud,  # Acción para mostrar la tabla de ventas
             "AGREGAR VENTA": agregar_venta,    # Acción para abrir ventana de verificación
-            "FACTURACIÓN": lambda: messagebox.showinfo("Acción", "Facturación"),
             "REGRESAR": lambda: [base.destroy(), MainApp()]
         }
 
