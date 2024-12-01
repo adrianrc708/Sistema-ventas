@@ -156,8 +156,26 @@ class CRUDventas:
 
             except Exception as e:
                 messagebox.showerror("Error", f"Error al buscar la venta: {e}")
-
-
+                
+        def mostrar_detalles(event):
+            selected_item = table.selection()
+            if not selected_item:
+                return
+            venta_id = table.item(selected_item, "values")[0]
+            for item in detalles_table.get_children():
+                detalles_table.delete(item)
+            try:
+                cur.execute("""
+                    SELECT p.nombre, dv.cantidad, dv.precio_unitario, dv.cantidad * dv.precio_unitario AS subtotal
+                    FROM detalle_venta AS dv
+                    JOIN Producto AS p ON dv.Producto_idProducto = p.idProducto
+                    WHERE dv.Venta_idVenta = %s
+                """, (venta_id,))
+                detalles = cur.fetchall()
+                for detalle in detalles:
+                    detalles_table.insert("", "end", values=detalle)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudieron cargar los detalles: {e}")
 
         # Función Eliminar
         def eliminar_venta_id():
@@ -332,8 +350,12 @@ class CRUDventas:
                             """, (next_id_detalle, id_venta, prod_id, precio, cantidad))
                             next_id_detalle += 1
 
-                            # Actualizar el stock de los productos seleccionados
-                            cur.execute("UPDATE Producto SET stock_actual = stock_actual - %s WHERE idProducto = %s", (cantidad, prod_id))
+                            # Actualizar el stock y las salidas de los productos seleccionados
+                            cur.execute("""
+                                UPDATE Producto 
+                                SET stock_actual = stock_actual - %s, salidas = salidas + %s
+                                WHERE idProducto = %s
+                            """, (cantidad, cantidad, prod_id))
 
                         # Confirmar los cambios en la base de datos
                         cur.connection.commit()
@@ -349,6 +371,7 @@ class CRUDventas:
                     except Exception as e:
                         cur.connection.rollback()
                         messagebox.showerror("Error", f"No se pudo registrar la venta: {e}")
+
 
 
                 def generar_factura_automatica(venta_id):
