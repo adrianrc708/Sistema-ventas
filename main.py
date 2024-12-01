@@ -90,7 +90,7 @@ class MainApp:
             fg_color=custom_color,
             hover_color=hover_color,
             font=("Comic Sans MS", 16, "bold"),
-            command=lambda: [self.root.destroy(), print("Interfaz de reportes no implementada.")]
+            command=lambda: [self.root.destroy(), Controlador.mostrar_reportes()]
         )
         reportes_button.pack(pady=10)
 
