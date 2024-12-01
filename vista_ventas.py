@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from gestionar_ventas import registrar_venta, consultar_venta, eliminar_venta
@@ -71,6 +72,9 @@ class CRUDventas:
             delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_venta_id, width=80, fg_color=custom_color, hover_color="#B03B4A")
             delete_button.grid(row=0, column=3, padx=10, pady=5)
 
+            print_button = ctk.CTkButton(search_frame, text="Imprimir", command=imprimir_factura, width=80, fg_color=custom_color, hover_color="#B03B4A")
+            print_button.grid(row=0, column=4, padx=10, pady=5)
+
             # Crear el frame para la tabla de ventas
             table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white")
             table_frame.pack(pady=20, fill="x", padx=20)
@@ -83,12 +87,24 @@ class CRUDventas:
             # Estilo de la tabla de ventas
             style = ttk.Style()
             style.configure("Treeview.Heading", font=("Comic Sans MS", 10, "bold"), background=custom_color, foreground="black")
-            style.configure("Treeview", rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=1)
+            style.configure("Treeview", rowheight=20, background="white", foreground="black", bordercolor="black", borderwidth=1)
             style.map("Treeview", background=[("selected", "#D04A5D")])
 
-            for col in columns:
-                table.heading(col, text=col)
-                table.column(col, anchor="center")
+            # Definir los anchors específicos para cada columna
+            table.heading("ID Venta", text="ID Venta")
+            table.column("ID Venta", anchor="center", width=100)
+
+            table.heading("Cliente", text="Cliente")
+            table.column("Cliente", anchor="center", width=150)  # Alineado a la izquierda para el nombre
+
+            table.heading("Usuario", text="Usuario")
+            table.column("Usuario", anchor="center", width=150)
+
+            table.heading("Fecha", text="Fecha")
+            table.column("Fecha", anchor="center", width=120)
+
+            table.heading("Total", text="Total")
+            table.column("Total", anchor="center", width=100)
 
             # Crear el frame para la tabla de detalles de la venta
             detalles_frame = ctk.CTkFrame(frame_light_gray, fg_color="white")
@@ -104,8 +120,41 @@ class CRUDventas:
                 detalles_table.heading(col, text=col)
                 detalles_table.column(col, anchor="center")
 
+                    # Definir los anchors específicos para cada columna en la tabla de detalles
+            detalles_table.column("ID Detalle Venta", anchor="center", width=100)
+            detalles_table.column("ID Producto", anchor="center", width=100)
+            detalles_table.column("Producto", anchor="center", width=200)  # Alineado a la izquierda para el nombre del producto
+            detalles_table.column("Precio Unitario", anchor="center", width=120)  # Alineado a la derecha para mostrar precios
+            detalles_table.column("Cantidad", anchor="center", width=100)
+
             # Cargar las ventas en la tabla
             cargar_ventas()
+
+
+        def imprimir_factura():
+            """Imprime la factura de la venta seleccionada en la tabla de ventas."""
+            global table  # Asegúrate de que table esté accesible globalmente
+    
+            # Verificar si la tabla existe
+            if not table:
+                messagebox.showerror("Error", "La tabla de ventas no está disponible.")
+                return
+
+            selected_item = table.selection()
+            if not selected_item:
+                messagebox.showwarning("Advertencia", "Seleccione una venta para imprimir.")
+                return
+
+            venta_id = table.item(selected_item, "values")[0]
+    
+            try:
+                # Llamar a la función para generar la factura
+                generar_factura_automatica(venta_id)
+                messagebox.showinfo("Éxito", f"Factura de la venta {venta_id} generada correctamente.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo generar la factura: {e}")            
+
+
 
 
         def buscar_venta():
@@ -216,9 +265,23 @@ class CRUDventas:
             password_window = ctk.CTkToplevel(base)
             password_window.title("Acceso a la Venta")
             password_window.geometry("400x200")
+    
+            # Centrar la ventana
+            window_width = 400
+            window_height = 200
+            screen_width = password_window.winfo_screenwidth()
+            screen_height = password_window.winfo_screenheight()
+            position_top = int(screen_height / 2 - window_height / 2)
+            position_left = int(screen_width / 2 - window_width / 2)
+            password_window.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
+    
+            # Poner la ventana al frente usando el atributo -topmost
+            password_window.attributes("-topmost", True)  # Esta opción coloca la ventana al frente
+            password_window.after(100, lambda: password_window.attributes("-topmost", False))  # Después de 100ms, quitar el atributo -topmost
 
+    
             # Etiqueta y campo de entrada para la contraseña
-            password_label = ctk.CTkLabel(password_window, text="Ingrese la Contraseña:", font=("Arial", 14))
+            password_label = ctk.CTkLabel(password_window, text="Ingrese la Contraseña:", font=("Comic Sans MS", 14))
             password_label.pack(pady=10)
 
             password_entry = ctk.CTkEntry(password_window, show="*", width=250)
@@ -236,7 +299,7 @@ class CRUDventas:
                 product_table_frame.pack(pady=20, fill="both", expand=True, padx=20)
 
                 columns = ("idProducto", "Nombre", "Código", "Ubicación", "Precio", "Stock Actual", "Cantidad")
-                product_table = ttk.Treeview(product_table_frame, columns=columns, show="headings", height=20)
+                product_table = ttk.Treeview(product_table_frame, columns=columns, show="headings", height=15)
                 product_table.pack(fill="both", expand=True)
 
                 style = ttk.Style()
@@ -246,6 +309,14 @@ class CRUDventas:
                 for col in columns:
                     product_table.heading(col, text=col)
                     product_table.column(col, anchor="center")
+                
+                product_table.column("idProducto", width=80, anchor="center")  # idProducto más estrecha
+                product_table.column("Nombre", width=200, anchor="center")  # Nombre más ancha
+                product_table.column("Código", width=100, anchor="center")  # Código
+                product_table.column("Ubicación", width=150, anchor="center")  # Ubicación
+                product_table.column("Precio", width=100, anchor="center")  # Precio alineado a la derecha
+                product_table.column("Stock Actual", width=120, anchor="center")  # Stock
+                product_table.column("Cantidad", width=80, anchor="center")
 
                 try:
                     cur.execute("SELECT idProducto, nombre, codigo, Ubicacion_idUbicacion, valor_venta, stock_actual FROM Producto")
@@ -264,36 +335,40 @@ class CRUDventas:
                         selected_item = product_table.item(item_id)
                         stock_actual = int(selected_item["values"][5])  # Stock Actual
 
-                        entry = ttk.Entry(product_table)
-                        entry.place(x=event.x_root - product_table.winfo_rootx(),
-                                    y=event.y_root - product_table.winfo_rooty(),
-                                    width=100, height=25)
+                        col_bbox = product_table.bbox(item_id, column=column_id)  # Obtiene las coordenadas de la celda
+                        if col_bbox:
+                            x, y, _, _ = col_bbox  
 
-                        def save_edit(event):
-                            """Guarda el valor ingresado y valida la cantidad."""
-                            new_value = entry.get()
-                            if not new_value.isdigit():
-                                messagebox.showerror("Error", "La cantidad debe ser un número entero.")
-                                new_value = 0
-                            else:
-                                new_value = int(new_value)
-                                if new_value > stock_actual or new_value < 0:
-                                    messagebox.showerror("Error", "La cantidad debe ser menor o igual al stock actual y mayor o igual a 0.")
+                            x_offset = product_table.winfo_x()  # Ajuste horizontal relativo al contenedor del Treeview
+                            y_offset = product_table.winfo_y() 
+
+                            entry = ttk.Entry(product_table)
+                            entry.place(x=x + x_offset, y=y + y_offset, width=100, height=25)  # Usa las coordenadas relativas
+
+                            def save_edit(event):
+                                """Guarda el valor ingresado y valida la cantidad."""
+                                new_value = entry.get()
+                                if not new_value.isdigit():
+                                    messagebox.showerror("Error", "La cantidad debe ser un número entero.")
                                     new_value = 0
+                                else:
+                                    new_value = int(new_value)
+                                    if new_value > stock_actual or new_value < 0:
+                                        messagebox.showerror("Error", "La cantidad debe ser menor o igual al stock actual y mayor o igual a 0.")
+                                        new_value = 0
 
-                            product_table.set(item_id, column="Cantidad", value=new_value)
-                            entry.destroy()
+                                product_table.set(item_id, column="Cantidad", value=new_value)
+                                entry.destroy()
 
-                        entry.bind("<Return>", save_edit)
-                        entry.bind("<FocusOut>", save_edit)
-                        entry.focus()
+                            entry.bind("<Return>", save_edit)
+                            entry.bind("<FocusOut>", save_edit)
+                            entry.focus()
 
                 product_table.bind("<Double-1>", on_double_click)
 
+
                 def confirmar_venta():
                     """Confirma la venta, registra los datos en la base de datos y genera automáticamente una factura."""
-                    import tkinter.simpledialog as simpledialog
-
                     total_importe = 0
                     productos_seleccionados = []
 
@@ -311,70 +386,178 @@ class CRUDventas:
                         messagebox.showwarning("Advertencia", "Debe seleccionar al menos un producto con cantidad válida.")
                         return
 
-                    # Solicitar ID del cliente
-                    cliente_id = simpledialog.askstring("Cliente", "Ingrese el ID del Cliente:")
-                    if not cliente_id or not cliente_id.isdigit():
-                        messagebox.showerror("Error", "Debe ingresar un ID de cliente válido.")
-                        return
+                    # Crear una ventana emergente para seleccionar al cliente
+                    select_client_window = ctk.CTkToplevel(base)
+                    select_client_window.title("Seleccionar Cliente")
+                    select_client_window.geometry("600x400")  # Tamaño de la ventana
+                    select_client_window.resizable(False, False)
+
+                    # Centrar la ventana
+                    window_width = 600
+                    window_height = 400
+                    screen_width = select_client_window.winfo_screenwidth()
+                    screen_height = select_client_window.winfo_screenheight()
+                    position_top = int(screen_height / 2 - window_height / 2)
+                    position_left = int(screen_width / 2 - window_width / 2)
+                    select_client_window.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
+                    select_client_window.lift()  # Poner la ventana al frente
+
+                    # Crear el Treeview para mostrar los clientes
+                    columns = ("idCliente", "Nombre")
+                    client_table = ttk.Treeview(select_client_window, columns=columns, show="headings", height=15)
+                    client_table.pack(fill="both", expand=True, padx=20, pady=20)
+
+                    client_table.heading("idCliente", text="ID")
+                    client_table.heading("Nombre", text="Nombre")
+                    client_table.column("idCliente", width=50, anchor="center")
+                    client_table.column("Nombre", width=250, anchor="center")
+
+                    # Agregar barra de desplazamiento
+                    scrollbar = ctk.CTkScrollbar(select_client_window, command=client_table.yview)
+                    scrollbar.pack(side="right", fill="y")
+                    client_table.configure(yscrollcommand=scrollbar.set)
 
                     try:
-                        # Validar que el cliente exista en la base de datos
-                        cur.execute("SELECT idCliente FROM Cliente WHERE idCliente = %s", (cliente_id,))
-                        if not cur.fetchone():
-                            messagebox.showerror("Error", "El ID del cliente ingresado no existe.")
-                            return
+                        # Obtener los clientes de la base de datos
+                        cur.execute("SELECT idCliente, persona FROM Cliente")
+                        clientes = cur.fetchall()
 
-                        # Obtener el próximo ID de venta
-                        cur.execute("SELECT COALESCE(MAX(idVenta), 0) + 1 FROM Venta")
-                        id_venta = cur.fetchone()[0]
-
-                        # Calcular los totales
-                        igv = 0.18
-                        importe_total_igv = total_importe * (1 + igv)  # Precio con IGV
-                        importe_total = total_importe  # Precio sin IGV
-
-                        # Insertar la venta en la tabla Venta
-                        cur.execute("""
-                            INSERT INTO Venta (idVenta, fecha, Cliente_idCliente, descuento, importe_total, importe_total_igv, idUsuario)
-                            VALUES (%s, NOW(), %s, %s, %s, %s, %s)
-                        """, (id_venta, cliente_id, 0, importe_total, importe_total_igv, user_id))
-
-                        # Insertar los productos en la tabla detalle_venta
-                        cur.execute("SELECT COALESCE(MAX(iddetalle_venta), 0) + 1 FROM detalle_venta")
-                        next_id_detalle = cur.fetchone()[0]
-
-                        for prod_id, cantidad, precio in productos_seleccionados:
-                            cur.execute("""
-                                INSERT INTO detalle_venta (iddetalle_venta, Venta_idVenta, Producto_idProducto, precio_unitario, cantidad)
-                                VALUES (%s, %s, %s, %s, %s)
-                            """, (next_id_detalle, id_venta, prod_id, precio, cantidad))
-                            next_id_detalle += 1
-
-                            # Actualizar el stock y las salidas de los productos seleccionados
-                            cur.execute("""
-                                UPDATE Producto 
-                                SET stock_actual = stock_actual - %s, salidas = salidas + %s
-                                WHERE idProducto = %s
-                            """, (cantidad, cantidad, prod_id))
-
-                        # Confirmar los cambios en la base de datos
-                        cur.connection.commit()
-
-                        # Generar automáticamente la factura
-                        generar_factura_automatica(id_venta)
-
-                        messagebox.showinfo("Éxito", "Venta confirmada y factura generada correctamente.")
-
-                        # Reiniciar la tabla de productos (cantidades a 0)
-                        mostrar_tabla_productos(user_id)
+                        for cliente in clientes:
+                            client_table.insert("", "end", values=(cliente[0], cliente[1]))
 
                     except Exception as e:
-                        cur.connection.rollback()
-                        messagebox.showerror("Error", f"No se pudo registrar la venta: {e}")
+                        messagebox.showerror("Error", f"No se pudieron cargar los clientes: {e}")
+                        select_client_window.destroy()
+                        return
+
+                    def seleccionar_cliente(event):
+                        """Selecciona el cliente y cierra la ventana"""
+                        selected_item = client_table.selection()
+                        if not selected_item:
+                            messagebox.showwarning("Advertencia", "Debe seleccionar un cliente.")
+                            return
+
+                        cliente_id = client_table.item(selected_item)["values"][0]  # Obtener el idCliente
+                        cliente_nombre = client_table.item(selected_item)["values"][1]  # Obtener el nombre del cliente
+
+                        # Mostrar el nombre del cliente seleccionado (opcional)
+                        messagebox.showinfo("Cliente Seleccionado", f"Cliente: {cliente_nombre} (ID: {cliente_id})")
+
+                        # Cerrar la ventana de selección de cliente
+                        select_client_window.destroy()
+
+                        # Proceder con la venta
+                        try:
+                            # Obtener el próximo ID de venta
+                            cur.execute("SELECT COALESCE(MAX(idVenta), 0) + 1 FROM Venta")
+                            id_venta = cur.fetchone()[0]
+
+                            # Calcular los totales
+                            igv = 0.18
+                            importe_total_igv = total_importe * (1 + igv)  # Precio con IGV
+                            importe_total = total_importe  # Precio sin IGV
+
+                            # Insertar la venta en la tabla Venta
+                            cur.execute("""
+                                INSERT INTO Venta (idVenta, fecha, Cliente_idCliente, descuento, importe_total, importe_total_igv, idUsuario)
+                                VALUES (%s, NOW(), %s, %s, %s, %s, %s)
+                            """, (id_venta, cliente_id, 0, importe_total, importe_total_igv, user_id))
+
+                            # Insertar los productos en la tabla detalle_venta
+                            cur.execute("SELECT COALESCE(MAX(iddetalle_venta), 0) + 1 FROM detalle_venta")
+                            next_id_detalle = cur.fetchone()[0]
+
+                            for prod_id, cantidad, precio in productos_seleccionados:
+                                cur.execute("""
+                                    INSERT INTO detalle_venta (iddetalle_venta, Venta_idVenta, Producto_idProducto, precio_unitario, cantidad)
+                                    VALUES (%s, %s, %s, %s, %s)
+                                """, (next_id_detalle, id_venta, prod_id, precio, cantidad))
+                                next_id_detalle += 1
+
+                                # Actualizar el stock y las salidas de los productos seleccionados
+                                cur.execute("""
+                                    UPDATE Producto 
+                                    SET stock_actual = stock_actual - %s, salidas = salidas + %s
+                                    WHERE idProducto = %s
+                                """, (cantidad, cantidad, prod_id))
+
+                            # Confirmar los cambios en la base de datos
+                            cur.connection.commit()
+
+                            # Generar automáticamente la factura
+                            generar_factura_automatica(id_venta)
+
+                            messagebox.showinfo("Éxito", "Venta confirmada y factura generada correctamente.")
+
+                            # Reiniciar la tabla de productos (cantidades a 0)
+                            mostrar_tabla_productos(user_id)
+
+                        except Exception as e:
+                            cur.connection.rollback()
+                            messagebox.showerror("Error", f"No se pudo registrar la venta: {e}")
+
+                    # Asociar la acción de selección de cliente al doble clic en una fila de la tabla
+                    client_table.bind("<Double-1>", seleccionar_cliente)
 
 
+                
 
-                def generar_factura_automatica(venta_id):
+
+                def cancelar_venta():
+                    """Restablece todas las cantidades a 0."""
+                    for item in product_table.get_children():
+                        product_table.set(item, column="Cantidad", value=0)
+
+                button_style = {
+                    "width": 200,  # Tamaño del botón
+                    "fg_color": "#D04A5D",  # Color de fondo del botón
+                    "hover_color": "#B03B4A",  # Color de fondo al hacer hover
+                    "font": ("Comic Sans MS", 14)  # Fuente
+                }
+
+                # Botón Confirmar Venta
+                confirmar_button = ctk.CTkButton(
+                    frame_light_gray,
+                    text="Confirmar Venta",
+                    command=confirmar_venta,
+                    **button_style  # Aplicamos el estilo definido
+                )
+                confirmar_button.pack(side="left", padx=20, pady=20)
+
+                # Botón Cancelar Venta
+                cancelar_button = ctk.CTkButton(
+                    frame_light_gray,
+                    text="Cancelar Venta",
+                    command=cancelar_venta,
+                    **button_style  # Aplicamos el estilo definido
+                )
+                cancelar_button.pack(side="right", padx=20, pady=20)
+
+            def verificar_contraseña():
+                contraseña = password_entry.get().strip()
+                if not contraseña:
+                    messagebox.showwarning("Contraseña", "Por favor, ingrese una contraseña.")
+                    return
+
+                try:
+                    cur.execute("SELECT id_usuario FROM usuarios WHERE contrasena = %s", (contraseña,))
+                    user = cur.fetchone()
+                    if user:
+                        user_id = user[0]
+                        password_window.destroy()
+                        mostrar_tabla_productos(user_id)
+                    else:
+                        messagebox.showerror("Error", "Contraseña incorrecta.")
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo verificar la contraseña: {e}")
+
+            verify_button = ctk.CTkButton(password_window, text="Verificar", command=verificar_contraseña, width=150)
+            verify_button.pack(pady=10)
+
+            close_button = ctk.CTkButton(password_window, text="Cancelar", command=password_window.destroy, width=150)
+            close_button.pack(pady=10)
+            
+        def generar_factura_automatica(venta_id):
                     """Genera una factura automáticamente en una carpeta llamada Facturas."""
                     try:
                         # Crear carpeta Facturas si no existe
@@ -466,45 +649,6 @@ class CRUDventas:
                         messagebox.showerror("Error", f"No se pudo generar la factura automáticamente: {e}")
 
 
-
-
-
-                def cancelar_venta():
-                    """Restablece todas las cantidades a 0."""
-                    for item in product_table.get_children():
-                        product_table.set(item, column="Cantidad", value=0)
-
-                confirmar_button = ctk.CTkButton(frame_light_gray, text="Confirmar Venta", command=confirmar_venta, width=200)
-                confirmar_button.pack(side="left", padx=20, pady=20)
-
-                cancelar_button = ctk.CTkButton(frame_light_gray, text="Cancelar Venta", command=cancelar_venta, width=200)
-                cancelar_button.pack(side="right", padx=20, pady=20)
-
-            def verificar_contraseña():
-                contraseña = password_entry.get().strip()
-                if not contraseña:
-                    messagebox.showwarning("Contraseña", "Por favor, ingrese una contraseña.")
-                    return
-
-                try:
-                    cur.execute("SELECT id_usuario FROM usuarios WHERE contrasena = %s", (contraseña,))
-                    user = cur.fetchone()
-                    if user:
-                        user_id = user[0]
-                        password_window.destroy()
-                        mostrar_tabla_productos(user_id)
-                    else:
-                        messagebox.showerror("Error", "Contraseña incorrecta.")
-                except Exception as e:
-                    messagebox.showerror("Error", f"No se pudo verificar la contraseña: {e}")
-
-            verify_button = ctk.CTkButton(password_window, text="Verificar", command=verificar_contraseña, width=150)
-            verify_button.pack(pady=10)
-
-            close_button = ctk.CTkButton(password_window, text="Cancelar", command=password_window.destroy, width=150)
-            close_button.pack(pady=10)
-            
-        
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
 
