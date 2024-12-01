@@ -6,11 +6,12 @@ from PIL import Image, ImageTk
 from conexion import miConexion, cur
 from generar_reportes import reporte_ventas, reporte_inventario, ventas_por_cliente
 
-class VistaReportes:
+class CRUDReportes:
     def __init__(self):
         self.crud()
 
     def crud(self):
+        from main import MainApp
         # Configuración y creación de la interfaz gráfica
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
@@ -60,11 +61,11 @@ class VistaReportes:
                 columnas = ["Cliente", "Número de Compras"]
                 if not datos:
                     table.delete(*table.get_children())
-                    texto_label.configure(text="NO HAY CLIENTES RECURRENTES", font=("Consola", 16, "bold"))
+                    texto_label.configure(text="NO HAY CLIENTES RECURRENTES", font=("Comic Sans MS", 20, "bold"))
                     button_mostrar_ventas.pack_forget()
                 else:
                     mostrar_datos_en_tabla(datos, columnas)
-                    texto_label.configure(text="CLIENTES RECURRENTES")
+                    texto_label.configure(text="CLIENTES RECURRENTES", font=("Comic Sans MS", 20, "bold"))
                     button_mostrar_ventas.pack(pady=10)
 
             except Exception as e:
@@ -77,11 +78,11 @@ class VistaReportes:
                 columnas = ["Producto","Stock"]
                 if not datos:
                     table.delete(*table.get_children())
-                    texto_label.configure(text="NO HAY PRODUCTOS CON STOCK LIMITADO", font=("Consola", 16, "bold"))
+                    texto_label.configure(text="NO HAY PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 20, "bold"))
                     button_mostrar_ventas.pack_forget()
                 else:
                     mostrar_datos_en_tabla(datos, columnas)
-                    texto_label.configure(text="PRODUCTOS CON STOCK LIMITADO")
+                    texto_label.configure(text="PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 20, "bold"))
                     button_mostrar_ventas.pack_forget()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar el reporte de inventario: {e}")
@@ -94,15 +95,15 @@ class VistaReportes:
                 ventas = ventas_por_cliente(cliente_seleccionado)
                 columnas_ventas = ["ID","Fecha", "Producto", "Cantidad"]
                 mostrar_datos_en_tabla(ventas, columnas_ventas)
-                texto_label.configure(text=f"Ventas de {cliente_seleccionado}")
+                texto_label.configure(text=f"Ventas de {cliente_seleccionado}", font=("Comic Sans MS", 20, "bold"))
                 button_mostrar_ventas.pack_forget()
             else:
                 messagebox.showwarning("Selección inválida", "Por favor, seleccione un cliente.")
-        
         # Botones de funcionalidades
         buttons = [
             ("REPORTE VENTAS", mostrar_reporte_ventas),
             ("REPORTE INVENTARIO", mostrar_reporte_inventario),
+            ("REGRESAR", lambda: [base.destroy(), MainApp()]),
         ]
 
         for btn_text, btn_command in buttons:
@@ -114,14 +115,14 @@ class VistaReportes:
                 corner_radius=10, 
                 fg_color=custom_color, 
                 hover_color="#B03B4A", 
-                font=("Consola", 14, "bold"),
+                font=("Comic Sans MS", 14, "bold"),
                 command=btn_command
             )
             button.pack(pady=10, fill="x", padx=20)
 
         # Frame derecho para la tabla de productos
 
-        title_label = ctk.CTkLabel(frame_light_gray, text="REPORTES", font=("Consola", 40, "bold"))
+        title_label = ctk.CTkLabel(frame_light_gray, text="REPORTES", font=("Comic Sans MS", 30, "bold"))
         title_label.pack(pady=20)
 
         # texto del subtítulo 
@@ -131,6 +132,11 @@ class VistaReportes:
         table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
         table_frame.pack(pady=20, fill="x", padx=20)
 
+
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=("Comic Sans MS", 12, "bold"))
+        style.configure("Treeview", font=("Comic Sans MS", 10), rowheight=25)
+        
         table = ttk.Treeview(table_frame, show="headings", height=20)
         table.pack(fill="both", expand=True)
 
@@ -142,7 +148,7 @@ class VistaReportes:
             corner_radius=10, 
             fg_color=custom_color, 
             hover_color="#B03B4A", 
-            font=("Consola", 14, "bold"),
+            font=("Comic Sans MS", 14, "bold"),
             command=mostrar_ventas_cliente
         )
         button_mostrar_ventas.pack_forget()
@@ -150,4 +156,4 @@ class VistaReportes:
 
 
 if __name__ == "__main__":
-   VistaReportes()
+   CRUDReportes()
