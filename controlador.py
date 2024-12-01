@@ -1,6 +1,7 @@
 from vista_clientes import CRUDclientes
 from vista_inventario import CRUDproductos
 from vista_ventas import CRUDventas
+from vista_reportes import CRUDReportes
 
 class Controlador:
     @staticmethod
@@ -19,3 +20,7 @@ class Controlador:
     @staticmethod
     def mostrar_ventas():
         CRUDventas().crud()
+    
+    @staticmethod
+    def mostrar_reportes():
+        CRUDReportes().crud()
