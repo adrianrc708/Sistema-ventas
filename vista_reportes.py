@@ -7,9 +7,6 @@ from conexion import miConexion, cur
 from generar_reportes import reporte_ventas, reporte_inventario, ventas_por_cliente
 
 class CRUDReportes:
-    def __init__(self):
-        self.crud()
-
     def crud(self):
         from main import MainApp
         # Configuración y creación de la interfaz gráfica
