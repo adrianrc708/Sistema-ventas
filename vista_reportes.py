@@ -14,15 +14,15 @@ class CRUDReportes:
         ctk.set_default_color_theme("blue")
         
         base = ctk.CTk()
-        base.geometry("1300x700")
+        base.geometry("1100x600")
         base.title("CRUD Productos")
 
         # Centrar ventana
         screen_width = base.winfo_screenwidth()
         screen_height = base.winfo_screenheight()
-        position_x = int((screen_width - 1300) / 2)
-        position_y = int((screen_height - 700) / 2)
-        base.geometry(f"1300x700+{position_x}+{position_y}")
+        position_x = int((screen_width - 1100) / 2)
+        position_y = int((screen_height - 600) / 2)
+        base.geometry(f"1100x600+{position_x}+{position_y}")
 
         custom_color = "#D04A5D"
 
@@ -37,7 +37,7 @@ class CRUDReportes:
         logo_label.pack(pady=(20, 30))
 
         #Frame derecho para tabla de productos
-        frame_light_gray = ctk.CTkFrame(base, width=1000, height=700, fg_color='light gray')
+        frame_light_gray = ctk.CTkFrame(base, width=800, height=600, fg_color='light gray')
         frame_light_gray.pack(side="right", fill="both", expand=True)
         
 
@@ -126,16 +126,18 @@ class CRUDReportes:
         texto_label = ctk.CTkLabel(frame_light_gray, text="", font=("Consola", 14))
         texto_label.pack(pady=10)
 
-        table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
+        table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=250)
         table_frame.pack(pady=20, fill="x", padx=20)
 
-
+        # Estilo de columnas de las tablas
         style = ttk.Style()
         style.configure("Treeview.Heading", font=("Comic Sans MS", 12, "bold"))
         style.configure("Treeview", font=("Comic Sans MS", 10), rowheight=25)
         
-        table = ttk.Treeview(table_frame, show="headings", height=20)
+        table = ttk.Treeview(table_frame, show="headings", height=10)
         table.pack(fill="both", expand=True)
+
+        # Boton para mostrar ventas individuales
 
         button_mostrar_ventas = ctk.CTkButton(
             frame_light_gray, 
@@ -151,6 +153,5 @@ class CRUDReportes:
         button_mostrar_ventas.pack_forget()
         base.mainloop()
 
-
 if __name__ == "__main__":
-   CRUDReportes()
+   CRUDReportes().crud()
