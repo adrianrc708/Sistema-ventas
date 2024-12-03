@@ -45,3 +45,17 @@ def reporte_inventario():
     inventario = cur.fetchall()
     
     return inventario
+
+def trabajadores_con_mayor_ventas():
+    query = """
+    SELECT usuarios.nombre, usuarios.apellido, COUNT(Venta.idVenta) AS cantidad_ventas
+    FROM Venta
+    JOIN usuarios ON Venta.idUsuario = usuarios.id_usuario
+    GROUP BY usuarios.id_usuario
+    HAVING COUNT(Venta.idVenta) > 5
+    ORDER BY cantidad_ventas DESC;
+    """
+    cur.execute(query)
+    trabajadores = cur.fetchall()
+    
+    return trabajadores
