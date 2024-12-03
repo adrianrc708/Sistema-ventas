@@ -27,7 +27,7 @@ def vista_producto():
     frame_light_gray = ctk.CTkFrame(base, width=1000, height=700, fg_color='light gray')
     frame_light_gray.pack(side="right", fill="both", expand=True)
 
-    title_label = ctk.CTkLabel(frame_light_gray, text="INGRESAR PRODUCTO", font=("Consola", 30, "bold"))
+    title_label = ctk.CTkLabel(frame_light_gray, text="INGRESAR PRODUCTO", font=("Comic Sans MS", 30, "bold"))
     title_label.pack(pady=20)
 
     producto_nuevo_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
@@ -43,31 +43,31 @@ def vista_producto():
 
     categoria_dict = cargar_categorias()
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Código:", font=("Consola", 14)).grid(row=0, column=0, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Código:", font=("Comic Sans MS", 14)).grid(row=0, column=0, padx=5, pady=5)
     codigo_entry = ctk.CTkEntry(producto_nuevo_frame, width=150)
     codigo_entry.grid(row=0, column=1, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Artículo:", font=("Consola", 14)).grid(row=0, column=2, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Artículo:", font=("Comic Sans MS", 14)).grid(row=0, column=2, padx=5, pady=5)
     nombre_entry = ctk.CTkEntry(producto_nuevo_frame, width=200)
     nombre_entry.grid(row=0, column=3, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Valor Neto:", font=("Consola", 14)).grid(row=1, column=0, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Valor Neto:", font=("Comic Sans MS", 14)).grid(row=1, column=0, padx=5, pady=5)
     valor_neto_entry = ctk.CTkEntry(producto_nuevo_frame, width=150)
     valor_neto_entry.grid(row=1, column=1, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Valor de venta:", font=("Consola", 14)).grid(row=1, column=2, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Valor de venta:", font=("Comic Sans MS", 14)).grid(row=1, column=2, padx=5, pady=5)
     valor_venta_entry = ctk.CTkEntry(producto_nuevo_frame, width=150)
     valor_venta_entry.grid(row=1, column=3, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Categoría:", font=("Consola", 14)).grid(row=1, column=4, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Categoría:", font=("Comic Sans MS", 14)).grid(row=1, column=4, padx=5, pady=5)
     categoria_combo = ttk.Combobox(producto_nuevo_frame, values=list(categoria_dict.keys()), state="readonly", width=15)
     categoria_combo.grid(row=1, column=5, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Ubicación:", font=("Consola", 14)).grid(row=0, column=4, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Ubicación:", font=("Comic Sans MS", 14)).grid(row=0, column=4, padx=5, pady=5)
     ubicacion_entry = ctk.CTkEntry(producto_nuevo_frame, width=150)
     ubicacion_entry.grid(row=0, column=5, padx=5, pady=5)
 
-    ctk.CTkLabel(producto_nuevo_frame, text="Stock Actual:", font=("Consola", 14)).grid(row=1, column=6, padx=5, pady=5)
+    ctk.CTkLabel(producto_nuevo_frame, text="Stock Actual:", font=("Comic Sans MS", 14)).grid(row=1, column=6, padx=5, pady=5)
     stock_entry = ctk.CTkEntry(producto_nuevo_frame, width=100)
     stock_entry.grid(row=1, column=7, padx=5, pady=5)
 
@@ -122,11 +122,11 @@ def vista_producto():
     stock_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
     stock_frame.pack(pady=10)
 
-    ctk.CTkLabel(stock_frame, text="Código:", font=("Consola", 14)).grid(row=0, column=0, padx=5, pady=5)
+    ctk.CTkLabel(stock_frame, text="Código:", font=("Comic Sans MS", 14)).grid(row=0, column=0, padx=5, pady=5)
     codigo_stock_entry = ctk.CTkEntry(stock_frame, width=100)
     codigo_stock_entry.grid(row=0, column=1, padx=5, pady=5)
 
-    ctk.CTkLabel(stock_frame, text="Stock a agregar:", font=("Consola", 14)).grid(row=0, column=2, padx=5, pady=5)
+    ctk.CTkLabel(stock_frame, text="Stock a agregar:", font=("Comic Sans MS", 14)).grid(row=0, column=2, padx=5, pady=5)
     stock_add_entry = ctk.CTkEntry(stock_frame, width=100)
     stock_add_entry.grid(row=0, column=3, padx=5, pady=5)
 
@@ -153,13 +153,12 @@ def vista_producto():
 
     def volver_a_vista_inventario():
         base.destroy()
-        CRUDproductos() 
+        CRUDproductos().crud()
 
-    volver_btn = ctk.CTkButton(frame_light_gray, text="VOLVER",  width=150 , fg_color=custom_color, command=volver_a_vista_inventario)
+    volver_btn = ctk.CTkButton(frame_light_gray, text="Volver",  width=150 , fg_color=custom_color, command=volver_a_vista_inventario)
     volver_btn.pack(pady=10)
 
 
     cargar_productos()
 
     base.mainloop()
-
