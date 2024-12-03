@@ -96,8 +96,8 @@ class CRUDReportes:
                 button_mostrar_ventas.pack_forget()
             else:
                 messagebox.showwarning("Selección inválida", "Por favor, seleccione un cliente.")
-        # Botones de funcionalidades
-
+        
+        # Función para mostrar trabajadores con mayor cantidad de ventas
         def mostrar_trabajadores():
             try:
                 datos = trabajadores_con_mayor_ventas()
@@ -111,10 +111,11 @@ class CRUDReportes:
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar el reporte de trabajadores: {e}")
 
+        # Botones de funcionalidades
         buttons = [
             ("REPORTE VENTAS", mostrar_reporte_ventas),
             ("REPORTE INVENTARIO", mostrar_reporte_inventario),
-            ("REPORTE DE TRABAJADORES", mostrar_trabajadores),
+            ("REPORTE TRABAJADORES", mostrar_trabajadores),
             ("REGRESAR", lambda: [base.destroy(), MainApp()]),
         ]
 
