@@ -4,7 +4,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from conexion import miConexion, cur
-from generar_reportes import reporte_ventas, reporte_inventario, ventas_por_cliente
+from generar_reportes import reporte_ventas, reporte_inventario, ventas_por_cliente, trabajadores_con_mayor_ventas
 
 class CRUDReportes:
     def crud(self):
@@ -58,11 +58,11 @@ class CRUDReportes:
                 columnas = ["Cliente", "Número de Compras"]
                 if not datos:
                     table.delete(*table.get_children())
-                    texto_label.configure(text="NO HAY CLIENTES RECURRENTES", font=("Comic Sans MS", 20, "bold"))
+                    texto_label.configure(text="NO HAY CLIENTES RECURRENTES", font=("Comic Sans MS", 15, "bold"))
                     button_mostrar_ventas.pack_forget()
                 else:
                     mostrar_datos_en_tabla(datos, columnas)
-                    texto_label.configure(text="CLIENTES RECURRENTES", font=("Comic Sans MS", 20, "bold"))
+                    texto_label.configure(text="CLIENTES RECURRENTES", font=("Comic Sans MS", 15, "bold"))
                     button_mostrar_ventas.pack(pady=10)
 
             except Exception as e:
@@ -75,11 +75,11 @@ class CRUDReportes:
                 columnas = ["Producto","Stock"]
                 if not datos:
                     table.delete(*table.get_children())
-                    texto_label.configure(text="NO HAY PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 20, "bold"))
+                    texto_label.configure(text="NO HAY PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 15, "bold"))
                     button_mostrar_ventas.pack_forget()
                 else:
                     mostrar_datos_en_tabla(datos, columnas)
-                    texto_label.configure(text="PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 20, "bold"))
+                    texto_label.configure(text="PRODUCTOS CON STOCK LIMITADO", font=("Comic Sans MS", 15, "bold"))
                     button_mostrar_ventas.pack_forget()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar el reporte de inventario: {e}")
@@ -92,14 +92,29 @@ class CRUDReportes:
                 ventas = ventas_por_cliente(cliente_seleccionado)
                 columnas_ventas = ["ID","Fecha", "Producto", "Cantidad"]
                 mostrar_datos_en_tabla(ventas, columnas_ventas)
-                texto_label.configure(text=f"Ventas de {cliente_seleccionado}", font=("Comic Sans MS", 20, "bold"))
+                texto_label.configure(text=f"Ventas de {cliente_seleccionado}", font=("Comic Sans MS", 15, "bold"))
                 button_mostrar_ventas.pack_forget()
             else:
                 messagebox.showwarning("Selección inválida", "Por favor, seleccione un cliente.")
         # Botones de funcionalidades
+
+        def mostrar_trabajadores():
+            try:
+                datos = trabajadores_con_mayor_ventas()
+                columnas = ["Trabajador", "Apellido", "Cantidad de Ventas"]
+                if not datos:
+                    table.delete(*table.get_children())
+                    texto_label.configure(text="NO HAY VENTAS REGISTRADAS", font=("Comic Sans MS", 15, "bold"))
+                else:
+                    mostrar_datos_en_tabla(datos, columnas)
+                    texto_label.configure(text="TRABAJADORES CON MAYOR CANTIDAD DE VENTAS", font=("Comic Sans MS", 15, "bold"))
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo cargar el reporte de trabajadores: {e}")
+
         buttons = [
             ("REPORTE VENTAS", mostrar_reporte_ventas),
             ("REPORTE INVENTARIO", mostrar_reporte_inventario),
+            ("REPORTE DE TRABAJADORES", mostrar_trabajadores),
             ("REGRESAR", lambda: [base.destroy(), MainApp()]),
         ]
 
