@@ -44,9 +44,10 @@ class CRUDventas:
 
 
         # Mantén todas las funciones relacionadas globales accesibles y evita destruir widgets innecesariamente
+
         def mostrar_crud():
             """Reconstruye la interfaz principal para mostrar la tabla de ventas."""
-            global table, detalles_table, id_entry  # Aseguramos que las variables sean globales y estén disponibles
+            global table, detalles_table, id_entry, cliente_entry, trabajador_entry  # Aseguramos que las variables sean globales y estén disponibles
 
             # Limpiar el contenido actual del frame
             for widget in frame_light_gray.winfo_children():
@@ -56,18 +57,39 @@ class CRUDventas:
             title_label = ctk.CTkLabel(frame_light_gray, text="GESTIÓN DE VENTAS", font=("Comic Sans MS", 30, "bold"))
             title_label.pack(pady=20)
 
-            # Crear el frame de búsqueda
+            # Crear el frame de búsqueda y botones
             search_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
             search_frame.pack(pady=10)
 
+            # Buscar por ID
             id_label = ctk.CTkLabel(search_frame, text="ID Venta:", font=("Comic Sans MS", 14))
             id_label.grid(row=0, column=0, padx=5, pady=5)
 
             id_entry = ctk.CTkEntry(search_frame, width=100)
             id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_venta, width=80, fg_color=custom_color, hover_color="#B03B4A")
+            search_button = ctk.CTkButton(search_frame, text="Buscar ID", command=buscar_venta, width=80, fg_color=custom_color, hover_color="#B03B4A")
             search_button.grid(row=0, column=2, padx=10, pady=5)
+
+            # Buscar por Cliente
+            cliente_label = ctk.CTkLabel(search_frame, text="Cliente:", font=("Comic Sans MS", 14))
+            cliente_label.grid(row=1, column=0, padx=5, pady=5)
+
+            cliente_entry = ctk.CTkEntry(search_frame, width=100)
+            cliente_entry.grid(row=1, column=1, padx=5, pady=5)
+
+            cliente_search_button = ctk.CTkButton(search_frame, text="Buscar Cliente", command=buscar_venta_por_cliente, width=100, fg_color=custom_color, hover_color="#B03B4A")
+            cliente_search_button.grid(row=1, column=2, padx=10, pady=5)
+
+            # Buscar por Trabajador
+            trabajador_label = ctk.CTkLabel(search_frame, text="Trabajador:", font=("Comic Sans MS", 14))
+            trabajador_label.grid(row=2, column=0, padx=5, pady=5)
+
+            trabajador_entry = ctk.CTkEntry(search_frame, width=100)
+            trabajador_entry.grid(row=2, column=1, padx=5, pady=5)
+
+            trabajador_search_button = ctk.CTkButton(search_frame, text="Buscar Trabajador", command=buscar_venta_por_trabajador, width=120, fg_color=custom_color, hover_color="#B03B4A")
+            trabajador_search_button.grid(row=2, column=2, padx=10, pady=5)
 
             delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_venta_id, width=80, fg_color=custom_color, hover_color="#B03B4A")
             delete_button.grid(row=0, column=3, padx=10, pady=5)
@@ -95,7 +117,7 @@ class CRUDventas:
             table.column("ID Venta", anchor="center", width=100)
 
             table.heading("Cliente", text="Cliente")
-            table.column("Cliente", anchor="center", width=150)  # Alineado a la izquierda para el nombre
+            table.column("Cliente", anchor="center", width=150)
 
             table.heading("Usuario", text="Usuario")
             table.column("Usuario", anchor="center", width=150)
@@ -120,11 +142,11 @@ class CRUDventas:
                 detalles_table.heading(col, text=col)
                 detalles_table.column(col, anchor="center")
 
-                    # Definir los anchors específicos para cada columna en la tabla de detalles
+            # Definir los anchors específicos para cada columna en la tabla de detalles
             detalles_table.column("ID Detalle Venta", anchor="center", width=100)
             detalles_table.column("ID Producto", anchor="center", width=100)
-            detalles_table.column("Producto", anchor="center", width=200)  # Alineado a la izquierda para el nombre del producto
-            detalles_table.column("Precio Unitario", anchor="center", width=120)  # Alineado a la derecha para mostrar precios
+            detalles_table.column("Producto", anchor="center", width=200)
+            detalles_table.column("Precio Unitario", anchor="center", width=120)
             detalles_table.column("Cantidad", anchor="center", width=100)
 
             # Cargar las ventas en la tabla
@@ -205,6 +227,66 @@ class CRUDventas:
 
             except Exception as e:
                 messagebox.showerror("Error", f"Error al buscar la venta: {e}")
+                
+        def buscar_venta_por_cliente():
+            """Busca ventas por cliente y muestra los resultados en la tabla."""
+            global cliente_entry, table, detalles_table
+
+            cliente = cliente_entry.get().strip()
+            if not cliente:
+                messagebox.showwarning("Advertencia", "Ingrese un nombre de cliente válido.")
+                return
+
+            for item in table.get_children():
+                table.delete(item)
+
+            for detalle in detalles_table.get_children():
+                detalles_table.delete(detalle)
+
+            try:
+                cur.execute("""
+                    SELECT v.idVenta, c.persona, CONCAT(u.nombre, ' ', u.apellido) AS usuario, v.fecha, v.importe_total
+                    FROM Venta AS v
+                    JOIN Cliente AS c ON v.Cliente_idCliente = c.idCliente
+                    JOIN usuarios AS u ON v.idUsuario = u.id_usuario
+                    WHERE c.persona LIKE %s;
+                """, ('%' + cliente + '%',))
+                ventas = cur.fetchall()
+
+                for venta in ventas:
+                    table.insert("", "end", values=venta)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo buscar las ventas del cliente: {e}")
+
+        def buscar_venta_por_trabajador():
+            """Busca ventas por trabajador y muestra los resultados en la tabla."""
+            global trabajador_entry, table, detalles_table
+
+            trabajador = trabajador_entry.get().strip()
+            if not trabajador:
+                messagebox.showwarning("Advertencia", "Ingrese un nombre de trabajador válido.")
+                return
+
+            for item in table.get_children():
+                table.delete(item)
+
+            for detalle in detalles_table.get_children():
+                detalles_table.delete(detalle)
+
+            try:
+                cur.execute("""
+                    SELECT v.idVenta, c.persona, CONCAT(u.nombre, ' ', u.apellido) AS usuario, v.fecha, v.importe_total
+                    FROM Venta AS v
+                    JOIN Cliente AS c ON v.Cliente_idCliente = c.idCliente
+                    JOIN usuarios AS u ON v.idUsuario = u.id_usuario
+                    WHERE CONCAT(u.nombre, ' ', u.apellido) LIKE %s;
+                """, ('%' + trabajador + '%',))
+                ventas = cur.fetchall()
+
+                for venta in ventas:
+                    table.insert("", "end", values=venta)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo buscar las ventas del trabajador: {e}")
                 
         def mostrar_detalles(event):
             selected_item = table.selection()

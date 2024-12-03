@@ -8,9 +8,11 @@ from conexion import miConexion, cur
 
 
 class CRUDproductos:
-    def __init__(self):
+    def _init_(self):
         self.crud()
+
     def crud(self):
+        from main import MainApp
         def cargar_productos():
             for item in table.get_children():
                 table.delete(item)
@@ -18,7 +20,7 @@ class CRUDproductos:
                 cur.execute("""
                     SELECT p.codigo, p.nombre,p.valor_neto, p.valor_venta, c.nombre , u.ubicacion, p.entradas, p.salidas, stock_actual
                     FROM Producto AS p 
-                    LEFT JOIN Categoria AS c ON c.idCategoria = p.idCategoria  -- Ajustar la relación correcta
+                    LEFT JOIN Categoria AS c ON c.idCategoria = p.idCategoria
                     LEFT JOIN UbicacionProducto AS u ON u.idUbicacion = p.Ubicacion_idUbicacion
                     LIMIT 0, 1000;
                 """)
@@ -64,57 +66,56 @@ class CRUDproductos:
                 messagebox.showerror("Error", f"No se pudo realizar la búsqueda: {e}")
 
         def eliminar_producto_codigo():
-            codigo = id_entry.get().strip()  # Use id_entry to get the code for deletion
+            codigo = id_entry.get().strip()
             if not codigo:
                 messagebox.showinfo("Eliminar", "Ingrese un código para eliminar.")
                 return
 
             try:
-                eliminar_producto(codigo)  # Call the function to delete the product by code
+                eliminar_producto(codigo)
                 messagebox.showinfo("Éxito", "Producto eliminado exitosamente.")
 
-                # Remove the product from the table without reloading all data
                 for item in table.get_children():
                     producto = table.item(item, "values")
-                    if producto[0] == codigo:  # Assuming the code is in the first column of the table
+                    if producto[0] == codigo:
                         table.delete(item)
                         break
 
-                # Clear the input fields and reload the table
                 id_entry.delete(0, ctk.END)
                 name_entry.delete(0, ctk.END)
                 cargar_productos()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
 
-        # Función para manejar la selección de un producto en la tabla
         def seleccionar_producto(event):
             selected_item = table.focus()
             if selected_item:
                 producto = table.item(selected_item, "values")
                 id_entry.delete(0, ctk.END)
-                id_entry.insert(0, producto[0])  # ID
+                id_entry.insert(0, producto[0])
                 name_entry.delete(0, ctk.END)
-                name_entry.insert(0, producto[1])  # Nombre
+                name_entry.insert(0, producto[1])
+
+        def regresar_main():
+            base.destroy()  # Cierra la ventana actual
+            MainApp()  # Inicia una nueva instancia de MainApp
 
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
 
         base = ctk.CTk()
-        base.geometry("1300x700")  # Aumentar el tamaño de la ventana
+        base.geometry("1300x600")
         base.title("CRUD Productos")
 
         screen_width = base.winfo_screenwidth()
         screen_height = base.winfo_screenheight()
         position_x = int((screen_width - 1300) / 2)
-        position_y = int((screen_height - 700) / 2)
-        base.geometry(f"1300x700+{position_x}+{position_y}")
+        position_y = int((screen_height - 600) / 2)
+        base.geometry(f"1300x600+{position_x}+{position_y}")
 
-        # Color personalizado para los botones y encabezados de la tabla
         custom_color = "#D04A5D"
 
-        # Frame izquierdo plomo oscuro
-        frame_dark_gray = ctk.CTkFrame(base, width=300, height=700, fg_color='gray')  # Ajustar altura
+        frame_dark_gray = ctk.CTkFrame(base, width=300, height=600, fg_color='gray')
         frame_dark_gray.pack(side="left", fill="y")
         logo = Image.open("Imagenes/logo.png")
         logo = logo.resize((250, 150), Image.LANCZOS)
@@ -122,58 +123,55 @@ class CRUDproductos:
         logo_label = ctk.CTkLabel(frame_dark_gray, image=logo, text="")
         logo_label.image = logo
         logo_label.pack(pady=(20, 30))
-        # Botones en el menú izquierdo
-        buttons = ["NUEVA VENTA", "INVENTARIO", "VENTAS", "CLIENTES"]
-        for btn_text in buttons:
+
+        # Reemplazar botones sin función por AGREGAR PRODUCTO y REGRESAR
+        buttons = [
+            ("AGREGAR PRODUCTO", lambda: [base.destroy(), vista_producto()]),
+            ("REGRESAR", regresar_main)
+        ]
+        for btn_text, btn_command in buttons:
             button = ctk.CTkButton(
-                frame_dark_gray, 
-                text=btn_text, 
-                width=200, 
-                height=50, 
-                corner_radius=10, 
-                fg_color=custom_color, 
-                hover_color="#B03B4A", 
-                font=("Consola", 14, "bold")
+                frame_dark_gray,
+                text=btn_text,
+                width=200,
+                height=50,
+                corner_radius=10,
+                fg_color=custom_color,
+                hover_color="#B03B4A",
+                font=("Comic Sans MS", 14, "bold"),
+                command=btn_command
             )
             button.pack(pady=10, fill="x", padx=20)
 
-        # Frame derecho plomo claro
-        frame_light_gray = ctk.CTkFrame(base, width=1000, height=700, fg_color='light gray')  # Ajustar altura
+        frame_light_gray = ctk.CTkFrame(base, width=1000, height=700, fg_color='light gray')
         frame_light_gray.pack(side="right", fill="both", expand=True)
 
-        # Título en el frame derecho
-        title_label = ctk.CTkLabel(frame_light_gray, text="INVENTARIO", font=("Consola", 40, "bold"))
+        title_label = ctk.CTkLabel(frame_light_gray, text="INVENTARIO", font=("Comic Sans MS", 40, "bold"))
         title_label.pack(pady=20)
 
-        # LabelFrame para búsqueda
         search_frame = ctk.CTkFrame(frame_light_gray, fg_color="light gray")
         search_frame.pack(pady=10)
 
-        id_label = ctk.CTkLabel(search_frame, text="Codigo:", font=("Consola", 14))
+        id_label = ctk.CTkLabel(search_frame, text="Codigo:", font=("Comic Sans MS", 14))
         id_label.grid(row=0, column=0, padx=5, pady=5)
         id_entry = ctk.CTkEntry(search_frame, width=100)
         id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        name_label = ctk.CTkLabel(search_frame, text="Nombre:", font=("Consola", 14))
+        name_label = ctk.CTkLabel(search_frame, text="Nombre:", font=("Comic Sans MS", 14))
         name_label.grid(row=0, column=2, padx=5, pady=5)
         name_entry = ctk.CTkEntry(search_frame, width=275)
         name_entry.grid(row=0, column=3, padx=5, pady=5)
 
-        search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_producto, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
+        search_button = ctk.CTkButton(search_frame, text="Buscar", command=buscar_producto, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         search_button.grid(row=0, column=4, padx=10, pady=5)
 
-        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_codigo, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
+        delete_button = ctk.CTkButton(search_frame, text="Eliminar", command=eliminar_producto_codigo, width=80, fg_color=custom_color, hover_color="#B03B4A", font=("Comic Sans MS", 14, "bold"))
         delete_button.grid(row=0, column=5, padx=10, pady=5)
-        # LabelFrame para la tabla de productos
+
         table_frame = ctk.CTkFrame(frame_light_gray, fg_color="white", height=500)
         table_frame.pack(pady=20, fill="x", padx=20)
 
-        
-
-        # Define los nombres de las columnas
         columns = ("CODIGO", "ARTICULO", "VALOR NETO", "VALOR DE VENTA", "CATEGORIA", "UBICACION", "ENTRADAS", "SALIDAS", "STOCK")
-
-        # Define los anchos deseados para cada columna
         column_widths = {
             "CODIGO": 70,
             "ARTICULO": 240,
@@ -186,28 +184,22 @@ class CRUDproductos:
             "STOCK": 50,
         }
 
-        # Crea la tabla
-        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=20)
+        table = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
         table.pack(fill="both", expand=True)
 
-        # Estilos de la tabla
         style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Consola", 11, "bold"), background=custom_color, foreground="black")
-        style.configure("Treeview", font=("Consola", 11), rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=3)
+        style.configure("Treeview.Heading", font=("Comic Sans MS", 11, "bold"), background=custom_color, foreground="black")
+        style.configure("Treeview", font=("Comic Sans MS", 11), rowheight=25, background="white", foreground="black", bordercolor="black", borderwidth=3)
         style.map("Treeview", background=[("selected", "#D04A5D")])
 
-        # Ajusta el tamaño de las columnas
         for col in columns:
             table.heading(col, text=col)
             table.column(col, anchor="center", width=column_widths[col])
 
         table.bind("<ButtonRelease-1>", seleccionar_producto)
 
-        agregar_button = ctk.CTkButton(frame_light_gray, text="AGREGAR PRODUCTO", command=lambda: [base.destroy(), vista_producto()], width=40, height=40, corner_radius=10, fg_color=custom_color, hover_color="#B03B4A", font=("Consola", 14, "bold"))
-        agregar_button.pack(pady=10, fill="x", padx=400)
-
-
         cargar_productos()
         base.mainloop()
+
 if __name__ == "__main__":
     CRUDproductos().crud()
